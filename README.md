@@ -23,16 +23,16 @@ const { blob } = await fast.thumbnail(file, { width: 1024 }); // decoded, resize
 ```
 
 - **Dimensions without decoding.** Width, height and format come from the file header, EXIF orientation applied:
-  0.3 ms for a 12 MP JPEG instead of 47 ms.
-- **The page keeps painting.** 40 twelve-megapixel JPEGs become thumbnails in 262 ms on the worker pool, and the
-  longest gap between two frames is 9.6 ms.
+  0.3 ms for a 12 MP JPEG instead of 54 ms.
+- **The page keeps painting.** 40 twelve-megapixel JPEGs become thumbnails in 303 ms on the worker pool, and no
+  frame arrives late (longest gap 17 ms at 60 Hz).
 - **RAW in tens of milliseconds.** The camera's embedded preview is used before any demosaic: 7 RAW files (160 MB)
-  in 58 ms.
+  in 52 ms.
 - **Pay for what you use.** The RAW, HEIC, TIFF and PSD decoders are plugins that download when the first such file
   arrives.
 - **Safe output.** Thumbnails are oriented, never upscaled and carry no EXIF, so GPS tags do not leak.
 
-Measured on an Apple M3 Max in Chromium 148; method and full tables in [BENCHMARKS.md](BENCHMARKS.md).
+Measured on an Apple M3 Max in Chromium 156; method and full tables in [BENCHMARKS.md](BENCHMARKS.md).
 
 ## Usage
 
@@ -206,9 +206,10 @@ Types: `ImageFast`, `ImageFastOptions`, `CallOptions`, `ImageFastError`, `ImageF
 
 ## Compared with
 
-From each project's README as of September 2026; sizes are min+gzip from bundlephobia.
+From each project's README as of September 2026; sizes are min+gzip from bundlephobia; the two timing rows are from
+[BENCHMARKS.md](BENCHMARKS.md), each library with its defaults.
 
-|                             | imagefast                                                     | browser-image-compression 2.0 | pica 10                   | compressorjs 1.3 | blueimp-load-image 5.16 | exifr 7                  | image-size 2    |
+|                             | imagefast                                                     | browser-image-compression 2.0 | pica 10                   | compressorjs 1.4 | blueimp-load-image 5.16 | exifr 7                  | image-size 2    |
 | --------------------------- | ------------------------------------------------------------- | ----------------------------- | ------------------------- | ---------------- | ----------------------- | ------------------------ | --------------- |
 | Off the main thread         | ✅ reused worker pool                                         | ✅ one worker per call        | ✅ resampling only        | ❌               | ❌                      | ✅ manual                | n/a             |
 | Takes a `File` or `Blob`    | ✅                                                            | ✅                            | ❌ needs a canvas         | ✅               | ✅                      | ❌ metadata only         | ❌ headers only |
@@ -219,6 +220,8 @@ From each project's README as of September 2026; sizes are min+gzip from bundlep
 | TIFF, PSD, HEIC decode      | ✅ plugins                                                    | ❌                            | ❌                        | ❌               | ❌                      | ❌                       | sizes only      |
 | Runtime dependencies        | 0                                                             | 1                             | 2                         | 2                | 0                       | 0                        | 0               |
 | Size (gzip)                 | 6.8 KB + 4.5 KB worker                                        | 19.6 KB                       | 16.6 KB                   | 4.6 KB           | 9.1 KB                  | 26 KB                    | 4.2 KB          |
+| 40 × 12 MP → 1024 px        | 303 ms                                                        | 501 ms                        | 2,923 ms                  | 2,763 ms         | 2,585 ms                | n/a                      | n/a             |
+| Longest frame gap           | 17 ms                                                         | 18 ms                         | 228 ms                    | 119 ms           | 124 ms                  | n/a                      | n/a             |
 | Runs in                     | browser                                                       | browser                       | browser                   | browser          | browser                 | browser, Node            | Node, browser   |
 
 On a server, use [sharp](https://sharp.pixelplumbing.com/). When final-quality downscaling matters more than
