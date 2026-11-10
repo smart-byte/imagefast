@@ -1,0 +1,100 @@
+{
+  "name": "imagefast",
+  "version": "0.1.0",
+  "description": "Fast browser image processing on a worker pool: header-probed dimensions, thumbnails (createImageBitmap + OffscreenCanvas), and opt-in decoders for RAW (LibRaw wasm), TIFF, PSD and HEIC.",
+  "keywords": [
+    "image",
+    "image-processing",
+    "image-dimensions",
+    "thumbnail",
+    "resize",
+    "web-worker",
+    "worker-pool",
+    "offscreencanvas",
+    "createimagebitmap",
+    "raw",
+    "libraw",
+    "cr3",
+    "nef",
+    "arw",
+    "dng",
+    "tiff",
+    "psd",
+    "heic",
+    "heif",
+    "exif",
+    "browser",
+    "wasm"
+  ],
+  "license": "MIT",
+  "author": "Smart-Byte GmbH",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smart-byte/imagefast.git"
+  },
+  "homepage": "https://imagefast.dev",
+  "bugs": {
+    "url": "https://github.com/smart-byte/imagefast/issues"
+  },
+  "type": "module",
+  "main": "./dist/imagefast.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/imagefast.js"
+    },
+    "./raw": {
+      "types": "./dist/raw-plugin.d.ts",
+      "import": "./dist/raw.js"
+    },
+    "./tiff": {
+      "types": "./dist/tiff-plugin.d.ts",
+      "import": "./dist/tiff.js"
+    },
+    "./psd": {
+      "types": "./dist/psd-plugin.d.ts",
+      "import": "./dist/psd.js"
+    },
+    "./heic": {
+      "types": "./dist/heic-plugin.d.ts",
+      "import": "./dist/heic.js"
+    }
+  },
+  "files": [
+    "dist",
+    "wasm/libraw/wrapper.cpp",
+    "wasm/libraw/build.sh",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit",
+    "build:wasm": "bash wasm/libraw/build.sh",
+    "bench": "node bench/run.mjs",
+    "prepublishOnly": "npm run type-check && npm run format:check && npm run build && npm test",
+    "site": "vite --config site/vite.config.ts --open",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "site:build": "vite build --config site/vite.config.ts && cp README.md site-dist/llms-full.txt",
+    "site:preview": "vite preview --config site/vite.config.ts --port 4341"
+  },
+  "devDependencies": {
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@fontsource-variable/schibsted-grotesk": "5.3.0",
+    "@vitest/browser-playwright": "5.0.5",
+    "libheif-js": "1.23.5",
+    "playwright": "1.64.1",
+    "prettier": "^3.9.10",
+    "typescript": "^7.0.2",
+    "utif": "3.1.0",
+    "vite": "^8.3.4",
+    "vitest": "5.0.5"
+  },
+  "sideEffects": false
+}

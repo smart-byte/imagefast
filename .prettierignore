@@ -1,0 +1,9 @@
+dist
+node_modules
+wasm/libraw/LibRaw-*
+bench/node_modules
+bench/results
+src/libraw.js
+bun.lock
+*.md
+site-dist
