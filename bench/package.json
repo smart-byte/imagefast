@@ -1,0 +1,13 @@
+{
+  "name": "imagefast-bench",
+  "private": true,
+  "type": "module",
+  "description": "Benchmark harness for imagefast (headless Chromium via Playwright). Not published.",
+  "scripts": {
+    "bench": "node run.mjs"
+  },
+  "devDependencies": {
+    "browser-image-compression": "^2.0.2",
+    "playwright": "1.60.0"
+  }
+}
