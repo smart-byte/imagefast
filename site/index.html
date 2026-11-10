@@ -97,7 +97,13 @@
             <svg class="icon icon-moon" aria-hidden="true"><use href="#icon-moon" /></svg
             ><svg class="icon icon-sun" aria-hidden="true"><use href="#icon-sun" /></svg>
           </button>
-          <a href="https://github.com/smart-byte/imagefast" class="button secondary small" aria-label="imagefast on GitHub"
+          <a
+            href="https://github.com/smart-byte/imagefast"
+            class="button secondary small"
+            aria-label="imagefast on GitHub"
+            data-umami-event="outbound"
+            data-umami-event-place="nav"
+            data-umami-event-to="github"
             ><svg class="icon" aria-hidden="true"><use href="#icon-github" /></svg><span>GitHub</span></a
           >
         </div>
@@ -121,7 +127,15 @@
           <a href="#quick-start" class="button primary"
             >Get started<svg class="icon" aria-hidden="true">
               <use href="#icon-arrow" /></svg></a
-          ><button type="button" class="install" data-copy="npm install imagefast" aria-label="Copy npm install imagefast">
+          ><button
+            type="button"
+            class="install"
+            data-copy="npm install imagefast"
+            aria-label="Copy npm install imagefast"
+            data-umami-event="copy"
+            data-umami-event-place="hero"
+            data-umami-event-item="npm install imagefast"
+          >
             <span aria-hidden="true">$</span><code>npm install imagefast</code><svg class="icon" aria-hidden="true"><use href="#icon-copy" /></svg
             ><span class="copy-feedback" aria-hidden="true">Copied</span>
           </button>
@@ -146,8 +160,8 @@
               ><button type="button" data-mode="batch" aria-pressed="false">Batch of 12</button>
             </div>
             <div class="source-actions">
-              <button type="button" class="text-button" id="use-sample">Use sample</button
-              ><button type="button" class="button secondary small" id="choose-files">
+              <button type="button" class="text-button" id="use-sample" data-umami-event="demo" data-umami-event-action="sample">Use sample</button
+              ><button type="button" class="button secondary small" id="choose-files" data-umami-event="demo" data-umami-event-action="choose">
                 <svg class="icon" aria-hidden="true"><use href="#icon-upload" /></svg>Choose photos</button
               ><input
                 class="sr-only"
@@ -244,11 +258,11 @@
               </div>
             </fieldset>
             <div class="lab-actions">
-              <button class="button secondary" type="button" id="download" disabled>
+              <button class="button secondary" type="button" id="download" data-umami-event="demo" data-umami-event-action="download" disabled>
                 <svg class="icon" aria-hidden="true">
                   <use href="#icon-download" /></svg
                 ><span>Download</span></button
-              ><button class="button primary" type="button" id="process" disabled>
+              ><button class="button primary" type="button" id="process" data-umami-event="demo" data-umami-event-action="run" disabled>
                 <svg class="icon" aria-hidden="true"><use href="#icon-bolt" /></svg><span>Run</span>
               </button>
             </div>
@@ -271,7 +285,14 @@
           <div class="code-window">
             <div class="code-toolbar">
               <span>thumbnails.ts</span
-              ><button id="copy-code" type="button" aria-label="Copy the example">
+              ><button
+                id="copy-code"
+                type="button"
+                aria-label="Copy the example"
+                data-umami-event="copy"
+                data-umami-event-place="demo"
+                data-umami-event-item="example"
+              >
                 <svg class="icon" aria-hidden="true"><use href="#icon-copy" /></svg><span>Copy</span>
               </button>
             </div>
@@ -384,7 +405,12 @@
           <div class="section-head">
             <h2 id="benchmark-title">40 photos in 303 ms</h2>
             <p><span>40 twelve-megapixel JPEGs, resized to 1024 px.</span> <span>The page never paused longer than 17 ms.</span></p>
-            <a href="https://github.com/smart-byte/imagefast/blob/main/BENCHMARKS.md" class="text-link"
+            <a
+              href="https://github.com/smart-byte/imagefast/blob/main/BENCHMARKS.md"
+              class="text-link"
+              data-umami-event="outbound"
+              data-umami-event-place="benchmark"
+              data-umami-event-to="benchmarks"
               >Method and full results<svg class="icon" aria-hidden="true"><use href="#icon-arrow" /></svg
             ></a>
           </div>
@@ -506,7 +532,7 @@
           <h2 id="pair-title">Pairs with Pipelino</h2>
           <p>Inspect, thumbnail, upload: run the whole flow as a staged pipeline with concurrency, batching and live progress.</p>
         </div>
-        <a href="https://github.com/smart-byte/pipelino" class="button secondary"
+        <a href="https://pipelino.dev" class="button secondary" data-umami-event="outbound" data-umami-event-place="pair" data-umami-event-to="pipelino"
           >Meet Pipelino<svg class="icon" aria-hidden="true">
             <use href="#icon-arrow" /></svg
         ></a>
@@ -515,10 +541,23 @@
       <section class="closing wrap" aria-labelledby="closing-title">
         <h2 id="closing-title">Add it to your app</h2>
         <div class="actions">
-          <button type="button" class="install" data-copy="npm install imagefast" aria-label="Copy npm install imagefast">
+          <button
+            type="button"
+            class="install"
+            data-copy="npm install imagefast"
+            aria-label="Copy npm install imagefast"
+            data-umami-event="copy"
+            data-umami-event-place="closing"
+            data-umami-event-item="npm install imagefast"
+          >
             <span aria-hidden="true">$</span><code>npm install imagefast</code><svg class="icon" aria-hidden="true"><use href="#icon-copy" /></svg
             ><span class="copy-feedback" aria-hidden="true">Copied</span></button
-          ><a class="button primary" href="https://github.com/smart-byte/imagefast#quick-start"
+          ><a
+            class="button primary"
+            href="https://github.com/smart-byte/imagefast#quick-start"
+            data-umami-event="outbound"
+            data-umami-event-place="closing"
+            data-umami-event-to="docs"
             >Read the docs<svg class="icon" aria-hidden="true">
               <use href="#icon-arrow" /></svg
           ></a>
@@ -528,8 +567,10 @@
     <footer class="wrap">
       <a class="brand" href="#top">imagefast<span class="brand-dot">.</span></a>
       <nav aria-label="Footer navigation">
-        <a href="https://github.com/smart-byte/imagefast">GitHub</a><a href="https://www.npmjs.com/package/imagefast">npm</a><a href="./llms.txt">llms.txt</a
-        ><a href="https://github.com/smart-byte/imagefast/blob/main/LICENSE">MIT license</a><a href="./third-party-licenses.txt">Third-party notices</a>
+        <a href="https://github.com/smart-byte/imagefast" data-umami-event="outbound" data-umami-event-place="footer" data-umami-event-to="github">GitHub</a
+        ><a href="https://www.npmjs.com/package/imagefast" data-umami-event="outbound" data-umami-event-place="footer" data-umami-event-to="npm">npm</a
+        ><a href="./llms.txt">llms.txt</a><a href="https://github.com/smart-byte/imagefast/blob/main/LICENSE">MIT license</a
+        ><a href="./third-party-licenses.txt">Third-party notices</a><a href="./legal-notice.html">Legal notice</a><a href="./privacy.html">Privacy</a>
       </nav>
     </footer>
     <div id="announcement" class="sr-only" role="status"></div>
