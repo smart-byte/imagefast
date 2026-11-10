@@ -8,6 +8,10 @@ import { tiff } from 'imagefast/tiff';
 import { psd } from 'imagefast/psd';
 import { heic } from 'imagefast/heic';
 import imageCompression from 'browser-image-compression';
+import pica from 'pica';
+import Compressor from 'compressorjs';
+import loadImage from 'blueimp-load-image';
+import { imageSize } from 'image-size';
 
 interface Fixture {
   name: string;
@@ -163,6 +167,17 @@ async function head(file: Blob): Promise<Uint8Array> {
   return new Uint8Array(await file.slice(0, 512 * 1024).arrayBuffer());
 }
 
+/** "1024×768, 56 KB": what a thumbnail call produced, so a row that returned something else shows. */
+async function describe(blob: Blob): Promise<string> {
+  const bitmap = await createImageBitmap(blob);
+  const text = `${bitmap.width}×${bitmap.height}, ${Math.round(blob.size / 1024)} KB`;
+  bitmap.close();
+  return text;
+}
+
+const toJpeg = (canvas: HTMLCanvasElement) =>
+  new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/jpeg', 0.8));
+
 /** Typical hand-rolled approach: <img> + document canvas + toBlob, all on the main thread. */
 async function naiveThumb(file: File, width: number): Promise<Blob> {
   const url = URL.createObjectURL(file);
@@ -179,10 +194,29 @@ async function naiveThumb(file: File, width: number): Promise<Blob> {
     canvas.width = w;
     canvas.height = h;
     canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
-    return await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/jpeg', 0.8));
+    return await toJpeg(canvas);
   } finally {
     URL.revokeObjectURL(url);
   }
+}
+
+/** pica fed the fastest way it accepts: a bitmap decoded off the main thread. Its resampling runs in its own workers. */
+async function picaThumb(resizer: ReturnType<typeof pica>, file: File, width: number): Promise<Blob> {
+  const src = await createImageBitmap(file);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.min(width, src.width);
+  canvas.height = Math.round((src.height / src.width) * canvas.width);
+  await resizer.resize(src, canvas);
+  src.close();
+  return resizer.toBlob(canvas, 'image/jpeg', 0.8);
+}
+
+const compressorThumb = (file: File, width: number) =>
+  new Promise<Blob>((success, error) => new Compressor(file, { maxWidth: width, quality: 0.8, mimeType: 'image/jpeg', success, error }));
+
+async function blueimpThumb(file: File, width: number): Promise<Blob> {
+  const { image } = await loadImage(file, { maxWidth: width, canvas: true, orientation: true });
+  return toJpeg(image);
 }
 
 async function benchDimensions(cfg: Config, real: Record<string, File>) {
@@ -199,7 +233,8 @@ async function benchDimensions(cfg: Config, real: Record<string, File>) {
   for (const { format, file } of files) {
     await fast.dimensions(file); // warm the pool
     const pool = await repeat(cfg.iterations, () => fast.dimensions(file));
-    const probe = await repeat(cfg.iterations, async () => probeDimensions(await head(file)));
+    // Null where the head slice alone is not enough (a TIFF with its directory at the end): the pool reads a second range.
+    const probe = probeDimensions(await head(file)) && (await repeat(cfg.iterations, async () => probeDimensions(await head(file))));
     let native: { median: number } | null = null;
     try {
       await createImageBitmap(file).then((b) => b.close());
@@ -207,6 +242,15 @@ async function benchDimensions(cfg: Config, real: Record<string, File>) {
     } catch {
       native = null;
     }
+    // image-size gets the same head slice as the probe, or the whole file where that slice is not enough for it.
+    const sliced = async () => imageSize(await head(file));
+    const whole = async () => imageSize(new Uint8Array(await file.arrayBuffer()));
+    const read = await sliced().then(
+      () => sliced,
+      () => whole,
+    );
+    const other = await repeat(cfg.iterations, read).catch(() => null);
+    const otherSize = other && (await read());
     const dims = await fast.dimensions(file);
     rows.push({
       format,
@@ -215,10 +259,15 @@ async function benchDimensions(cfg: Config, real: Record<string, File>) {
       height: dims.height,
       method: dims.method,
       poolMs: pool.median,
-      probeMs: probe.median,
+      probeMs: probe?.median ?? null,
+      imageSizeMs: other?.median ?? null,
+      imageSizeResult: otherSize ? `${otherSize.width}×${otherSize.height}` : null,
+      imageSizeInput: read === whole ? 'whole file' : 'head slice',
       nativeMs: native?.median ?? null,
     });
-    log(`dims ${format}: pool ${pool.median} ms, probe ${probe.median} ms, native ${native?.median ?? 'n/a'} ms (${dims.method})`);
+    log(
+      `dims ${format}: pool ${pool.median} ms, probe ${probe?.median ?? 'n/a'} ms, image-size ${other?.median ?? 'n/a'} ms (${otherSize?.width}×${otherSize?.height}), native ${native?.median ?? 'n/a'} ms (${dims.method})`,
+    );
   }
   fast.terminate();
   return rows;
@@ -238,25 +287,38 @@ async function benchThumbnails(cfg: Config) {
   const results: Record<string, unknown> = {};
 
   const pool = createImageFast();
-  await pool.thumbnail(files[0]!, opts); // warm-up spawns the first worker; the rest spawn during the batch
+  const warm1 = await pool.thumbnail(files[0]!, opts); // warm-up spawns the first worker; the rest spawn during the batch
   const r1 = await monitored(perFile((f) => pool.thumbnail(f, opts)));
-  results['imagefast (worker pool)'] = { ...r1, value: undefined, perFileMedian: round(median(r1.value)), workers: pool.stats().size };
+  results['imagefast (worker pool)'] = {
+    ...r1,
+    value: undefined,
+    perFileMedian: round(median(r1.value)),
+    output: await describe(warm1.blob),
+    workers: pool.stats().size,
+  };
   pool.terminate();
 
   const main = createImageFast({ workers: 0 });
-  await main.thumbnail(files[0]!, opts);
+  const warm2 = await main.thumbnail(files[0]!, opts);
   const r2 = await monitored(perFile((f) => main.thumbnail(f, opts)));
-  results['imagefast (workers: 0, main thread)'] = { ...r2, value: undefined, perFileMedian: round(median(r2.value)) };
+  results['imagefast (workers: 0, main thread)'] = { ...r2, value: undefined, perFileMedian: round(median(r2.value)), output: await describe(warm2.blob) };
 
-  await naiveThumb(files[0]!, cfg.thumbWidth);
-  const r3 = await monitored(perFile((f) => naiveThumb(f, cfg.thumbWidth)));
-  results['<img> + canvas.toBlob (main thread)'] = { ...r3, value: undefined, perFileMedian: round(median(r3.value)) };
-
-  const bic = (f: File) =>
-    imageCompression(f, { maxWidthOrHeight: cfg.thumbWidth, maxSizeMB: 100, initialQuality: 0.8, fileType: 'image/jpeg', useWebWorker: true });
-  await bic(files[0]!);
-  const r4 = await monitored(perFile(bic));
-  results['browser-image-compression (useWebWorker)'] = { ...r4, value: undefined, perFileMedian: round(median(r4.value)) };
+  const resizer = pica();
+  const others: [string, (f: File) => Promise<Blob>][] = [
+    ['<img> + canvas.toBlob (main thread)', (f) => naiveThumb(f, cfg.thumbWidth)],
+    [
+      'browser-image-compression (useWebWorker)',
+      (f) => imageCompression(f, { maxWidthOrHeight: cfg.thumbWidth, maxSizeMB: 100, initialQuality: 0.8, fileType: 'image/jpeg', useWebWorker: true }),
+    ],
+    ['pica (createImageBitmap + resize + toBlob)', (f) => picaThumb(resizer, f, cfg.thumbWidth)],
+    ['compressorjs', (f) => compressorThumb(f, cfg.thumbWidth)],
+    ['blueimp-load-image (canvas + toBlob)', (f) => blueimpThumb(f, cfg.thumbWidth)],
+  ];
+  for (const [name, fn] of others) {
+    const warm = await fn(files[0]!);
+    const r = await monitored(perFile(fn));
+    results[name] = { ...r, value: undefined, perFileMedian: round(median(r.value)), output: await describe(warm) };
+  }
 
   for (const [k, v] of Object.entries(results)) log(`thumb ${k}: ${JSON.stringify(v)}`);
   return { files: files.length, totalBytes, width: cfg.thumbWidth, results };

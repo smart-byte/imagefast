@@ -1,0 +1,425 @@
+{
+  "machine": {
+    "date": "2026-11-10",
+    "cpu": "Apple M3 Max",
+    "cores": 16,
+    "loadAverage": 8.6,
+    "memoryGB": 48,
+    "os": "macOS 26.5.1",
+    "node": "v22.12.0",
+    "browser": "HeadlessChrome/156.0.8078.4",
+    "benchWallMs": 48731
+  },
+  "config": {
+    "fixtures": [
+      {
+        "name": "raw-1.cr2",
+        "kind": "raw",
+        "url": "/fixture/0"
+      },
+      {
+        "name": "raw-2.dng",
+        "kind": "raw",
+        "url": "/fixture/1"
+      },
+      {
+        "name": "raw-3.nef",
+        "kind": "raw",
+        "url": "/fixture/2"
+      },
+      {
+        "name": "raw-4.nef",
+        "kind": "raw",
+        "url": "/fixture/3"
+      },
+      {
+        "name": "raw-5.arw",
+        "kind": "raw",
+        "url": "/fixture/4"
+      },
+      {
+        "name": "raw-6.arw",
+        "kind": "raw",
+        "url": "/fixture/5"
+      },
+      {
+        "name": "raw-7.dng",
+        "kind": "raw",
+        "url": "/fixture/6"
+      },
+      {
+        "name": "heic-8.heic",
+        "kind": "heic",
+        "url": "/fixture/7"
+      },
+      {
+        "name": "tiff-9.tiff",
+        "kind": "tiff",
+        "url": "/fixture/8"
+      }
+    ],
+    "thumbFiles": 40,
+    "thumbWidth": 1024,
+    "iterations": 20
+  },
+  "versions": {
+    "browser-image-compression": "2.0.2",
+    "pica": "10.0.3",
+    "compressorjs": "1.4.0",
+    "blueimp-load-image": "5.16.0",
+    "image-size": "2.1.0"
+  },
+  "bundle": {
+    "core: imagefast.js": {
+      "files": [
+        "imagefast.js"
+      ],
+      "raw": 19629,
+      "gzip": 6817
+    },
+    "core worker (fetched on first call)": {
+      "files": [
+        "worker-pSlZfjWk.js"
+      ],
+      "raw": 11239,
+      "gzip": 4489
+    },
+    "imagefast/raw decoder module (LibRaw glue)": {
+      "files": [
+        "worker-raw-CH2cfSMT.js"
+      ],
+      "raw": 18330,
+      "gzip": 7503
+    },
+    "imagefast/raw libraw.wasm (fetched on first RAW)": {
+      "files": [
+        "libraw.wasm"
+      ],
+      "raw": 1084167,
+      "gzip": 402038
+    },
+    "imagefast/tiff decoder module (UTIF + pako)": {
+      "files": [
+        "worker-tiff-ed7Offmn.js"
+      ],
+      "raw": 86628,
+      "gzip": 30410
+    },
+    "imagefast/psd decoder module": {
+      "files": [
+        "worker-psd-CdksWnV4.js"
+      ],
+      "raw": 2954,
+      "gzip": 1488
+    },
+    "imagefast/heic decoder module": {
+      "files": [
+        "worker-heic-DCrSXW3_.js"
+      ],
+      "raw": 1317,
+      "gzip": 764
+    },
+    "imagefast/heic libheif.js (fetched on first HEIC the browser cannot decode)": {
+      "files": [
+        "libheif.js"
+      ],
+      "raw": 2043959,
+      "gzip": 714209
+    }
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+  "hardwareConcurrency": 16,
+  "dimensions": [
+    {
+      "format": "JPEG 4000×3000",
+      "bytes": 4960632,
+      "width": 4000,
+      "height": 3000,
+      "method": "header",
+      "poolMs": 0.3,
+      "probeMs": 0.3,
+      "imageSizeMs": 0.4,
+      "imageSizeResult": "4000×3000",
+      "imageSizeInput": "head slice",
+      "nativeMs": 54.2
+    },
+    {
+      "format": "PNG 4000×3000",
+      "bytes": 27289690,
+      "width": 4000,
+      "height": 3000,
+      "method": "header",
+      "poolMs": 0.2,
+      "probeMs": 0.3,
+      "imageSizeMs": 0.3,
+      "imageSizeResult": "4000×3000",
+      "imageSizeInput": "head slice",
+      "nativeMs": 126.1
+    },
+    {
+      "format": "WebP 4000×3000",
+      "bytes": 4985658,
+      "width": 4000,
+      "height": 3000,
+      "method": "header",
+      "poolMs": 0.2,
+      "probeMs": 0.2,
+      "imageSizeMs": 0.2,
+      "imageSizeResult": "4000×3000",
+      "imageSizeInput": "head slice",
+      "nativeMs": 259.2
+    },
+    {
+      "format": "PSD 4000×3000 (raw RGB)",
+      "bytes": 36000040,
+      "width": 4000,
+      "height": 3000,
+      "method": "header",
+      "poolMs": 0.2,
+      "probeMs": 0.2,
+      "imageSizeMs": 0.3,
+      "imageSizeResult": "4000×3000",
+      "imageSizeInput": "head slice",
+      "nativeMs": null
+    },
+    {
+      "format": "TIFF (0.6 MB)",
+      "bytes": 630342,
+      "width": 475,
+      "height": 330,
+      "method": "header",
+      "poolMs": 0.3,
+      "probeMs": null,
+      "imageSizeMs": 0.2,
+      "imageSizeResult": "475×330",
+      "imageSizeInput": "whole file",
+      "nativeMs": null
+    },
+    {
+      "format": "HEIC (0.7 MB)",
+      "bytes": 712287,
+      "width": 3388,
+      "height": 2185,
+      "method": "header",
+      "poolMs": 0.2,
+      "probeMs": 0.2,
+      "imageSizeMs": 0.2,
+      "imageSizeResult": "3387×2185",
+      "imageSizeInput": "head slice",
+      "nativeMs": null
+    }
+  ],
+  "thumbnails": {
+    "files": 40,
+    "totalBytes": 198318713,
+    "width": 1024,
+    "results": {
+      "imagefast (worker pool)": {
+        "ms": 303.4,
+        "maxGap": 16.9,
+        "longFrames": 0,
+        "frames": 20,
+        "longTaskMs": 0,
+        "perFileMedian": 213.6,
+        "output": "1024×768, 55 KB",
+        "workers": 15
+      },
+      "imagefast (workers: 0, main thread)": {
+        "ms": 1001.8,
+        "maxGap": 137,
+        "longFrames": 6,
+        "frames": 27,
+        "longTaskMs": 74,
+        "perFileMedian": 904.9,
+        "output": "1024×768, 55 KB"
+      },
+      "<img> + canvas.toBlob (main thread)": {
+        "ms": 2636.8,
+        "maxGap": 124.2,
+        "longFrames": 22,
+        "frames": 31,
+        "longTaskMs": 2414,
+        "perFileMedian": 2573.5,
+        "output": "1024×768, 71 KB"
+      },
+      "browser-image-compression (useWebWorker)": {
+        "ms": 500.7,
+        "maxGap": 17.7,
+        "longFrames": 0,
+        "frames": 32,
+        "longTaskMs": 0,
+        "perFileMedian": 423.6,
+        "output": "1024×768, 138 KB"
+      },
+      "pica (createImageBitmap + resize + toBlob)": {
+        "ms": 2922.8,
+        "maxGap": 228.4,
+        "longFrames": 6,
+        "frames": 140,
+        "longTaskMs": 325,
+        "perFileMedian": 1908.3,
+        "output": "1024×768, 62 KB"
+      },
+      "compressorjs": {
+        "ms": 2762.6,
+        "maxGap": 119.1,
+        "longFrames": 24,
+        "frames": 34,
+        "longTaskMs": 2360,
+        "perFileMedian": 2696,
+        "output": "1024×768, 71 KB"
+      },
+      "blueimp-load-image (canvas + toBlob)": {
+        "ms": 2585.3,
+        "maxGap": 123.7,
+        "longFrames": 21,
+        "frames": 30,
+        "longTaskMs": 2366,
+        "perFileMedian": 2524,
+        "output": "1024×768, 71 KB"
+      }
+    }
+  },
+  "plugins": [
+    {
+      "format": "PSD 4000×3000 raw RGB (synthetic)",
+      "bytes": 36000040,
+      "source": "4000×3000",
+      "decodedBy": "psd",
+      "coldMs": 107.2,
+      "warmMs": 75.7
+    },
+    {
+      "format": "TIFF (real file)",
+      "bytes": 630342,
+      "source": "475×330",
+      "decodedBy": "tiff",
+      "coldMs": 11.1,
+      "warmMs": 2.8
+    },
+    {
+      "format": "HEIC (real file, libheif-js)",
+      "bytes": 712287,
+      "source": "3388×2185",
+      "decodedBy": "heic",
+      "coldMs": 327.4,
+      "warmMs": 210.6
+    }
+  ],
+  "raw": {
+    "rows": [
+      {
+        "camera": "Canon EOS 1000D",
+        "bytes": 11679288,
+        "width": 2591,
+        "height": 3888,
+        "coldMs": 37.1,
+        "dimensionsMs": 2,
+        "embeddedMs": 2.4,
+        "embeddedMethod": "embedded",
+        "embeddedPreview": "1288×1936",
+        "demosaicMs": 213.6,
+        "demosaicMethod": "demosaic",
+        "demosaicSize": "1296×1944",
+        "thumbnailMs": 30.2
+      },
+      {
+        "camera": "Canon EOS 350D DIGITAL",
+        "bytes": 6372698,
+        "width": 3456,
+        "height": 2303,
+        "coldMs": 5.2,
+        "dimensionsMs": 1.4,
+        "embeddedMs": 1.4,
+        "embeddedMethod": "embedded",
+        "embeddedPreview": "1024×683",
+        "demosaicMs": 165.8,
+        "demosaicMethod": "demosaic",
+        "demosaicSize": "1728×1152",
+        "thumbnailMs": 7
+      },
+      {
+        "camera": "Nikon D60",
+        "bytes": 8841368,
+        "width": 2613,
+        "height": 3900,
+        "coldMs": 10.5,
+        "dimensionsMs": 2,
+        "embeddedMs": 2.4,
+        "embeddedMethod": "embedded",
+        "embeddedPreview": "2592×3872",
+        "demosaicMs": 204.8,
+        "demosaicMethod": "demosaic",
+        "demosaicSize": "1307×1950",
+        "thumbnailMs": 63.2
+      },
+      {
+        "camera": "Nikon D810",
+        "bytes": 75281408,
+        "width": 4928,
+        "height": 7380,
+        "coldMs": 42.4,
+        "dimensionsMs": 11.5,
+        "embeddedMs": 13.2,
+        "embeddedMethod": "embedded",
+        "embeddedPreview": "1080×1620",
+        "demosaicMs": 283,
+        "demosaicMethod": "demosaic",
+        "demosaicSize": "2464×3690",
+        "thumbnailMs": 37.5
+      },
+      {
+        "camera": "Sony ILCE-7C",
+        "bytes": 25312238,
+        "width": 6000,
+        "height": 4000,
+        "coldMs": 13.1,
+        "dimensionsMs": 3.6,
+        "embeddedMs": 4,
+        "embeddedMethod": "embedded",
+        "embeddedPreview": "1616×1080",
+        "demosaicMs": 191.7,
+        "demosaicMethod": "demosaic",
+        "demosaicSize": "3000×2000",
+        "thumbnailMs": 24.5
+      },
+      {
+        "camera": "Sony ILCE-7M4",
+        "bytes": 16408814,
+        "width": 4608,
+        "height": 3072,
+        "coldMs": 9.1,
+        "dimensionsMs": 2.8,
+        "embeddedMs": 2.9,
+        "embeddedMethod": "embedded",
+        "embeddedPreview": "1616×1080",
+        "demosaicMs": 3.2,
+        "demosaicMethod": "embedded",
+        "demosaicSize": "4608×3072",
+        "thumbnailMs": 18.2
+      },
+      {
+        "camera": "Canon EOS 7D",
+        "bytes": 16173926,
+        "width": 5184,
+        "height": 3456,
+        "coldMs": 9.6,
+        "dimensionsMs": 2.8,
+        "embeddedMs": 2.7,
+        "embeddedMethod": "embedded",
+        "embeddedPreview": "1024×866",
+        "demosaicMs": 363,
+        "demosaicMethod": "demosaic",
+        "demosaicSize": "2592×1728",
+        "thumbnailMs": 8.2
+      }
+    ],
+    "parallel": {
+      "files": 7,
+      "totalBytes": 160069740,
+      "ms": 52,
+      "maxGap": 16.9,
+      "longFrames": 0
+    }
+  }
+}

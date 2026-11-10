@@ -3,7 +3,7 @@
 Headless-Chromium benchmark harness. Results and methodology: [`../BENCHMARKS.md`](../BENCHMARKS.md).
 
 ```bash
-cd bench && npm install        # playwright + browser-image-compression, kept out of the library's own devDeps
+cd bench && npm install        # playwright and the libraries compared against, kept out of the library's own devDeps
 npx playwright install chromium
 cd .. && npm run bench         # writes bench/results/<date>.json and prints markdown tables
 ```

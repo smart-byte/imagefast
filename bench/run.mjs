@@ -49,6 +49,8 @@ const server = await createServer({
   },
   server: { port: Number(process.env.IMAGEFAST_BENCH_PORT ?? 4399), strictPort: false, fs: { allow: [root] } },
   worker: { format: 'es' },
+  // utif is first imported inside the TIFF worker. Found that late, Vite reloads the page in the middle of a run.
+  optimizeDeps: { include: ['utif'] },
   plugins: [
     {
       name: 'fixtures',
@@ -80,6 +82,7 @@ const config = {
   thumbWidth: 1024,
   iterations: Number(process.env.IMAGEFAST_ITERATIONS ?? 20),
 };
+const loadAverage = Math.round(os.loadavg()[0] * 10) / 10; // what else was running: the parallel rows suffer first
 const t0 = Date.now();
 const results = await page.evaluate((cfg) => window.runBench(cfg), config);
 const wall = Date.now() - t0;
@@ -130,6 +133,7 @@ const machine = {
     }
   })(),
   cores: os.cpus().length,
+  loadAverage,
   memoryGB: Math.round(os.totalmem() / 2 ** 30),
   os: (() => {
     try {
@@ -144,7 +148,13 @@ const machine = {
   browser: results.userAgent.match(/(HeadlessChrome|Chrome)\/[\d.]+/)?.[0] ?? results.userAgent,
   benchWallMs: wall,
 };
-const out = { machine, config, bundle, ...results };
+const versions = Object.fromEntries(
+  ['browser-image-compression', 'pica', 'compressorjs', 'blueimp-load-image', 'image-size'].map((name) => [
+    name,
+    JSON.parse(readFileSync(join(here, 'node_modules', name, 'package.json'), 'utf8')).version,
+  ]),
+);
+const out = { machine, config, versions, bundle, ...results };
 mkdirSync(join(here, 'results'), { recursive: true });
 const file = join(here, 'results', `${machine.date}.json`);
 writeFileSync(file, JSON.stringify(out, null, 2));
@@ -152,22 +162,31 @@ writeFileSync(file, JSON.stringify(out, null, 2));
 const kb = (n) => (n < 1024 ? `${n} B` : n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(2)} MB` : `${(n / 1024).toFixed(0)} KB`);
 const ms = (n) => (n == null ? 'n/a' : `${n} ms`);
 const lines = [];
-lines.push(`Machine: ${machine.cpu}, ${machine.cores} cores, ${machine.memoryGB} GB, ${machine.os}; ${machine.browser}; ${machine.date}\n`);
+lines.push(
+  `Machine: ${machine.cpu}, ${machine.cores} cores, ${machine.memoryGB} GB, ${machine.os}, load average ${machine.loadAverage} before the run; ${machine.browser}; ${machine.date}\n`,
+);
+lines.push(
+  `Compared with: ${Object.entries(versions)
+    .map(([name, v]) => `${name} ${v}`)
+    .join(', ')}\n`,
+);
 lines.push(
   '### dimensions()\n',
-  '| file | size | pool (`fast.dimensions`) | `probeDimensions` on main thread | `createImageBitmap` decode |',
-  '|---|---|---|---|---|',
+  '| file | size | pool (`fast.dimensions`) | `probeDimensions` on main thread | `image-size` on main thread | `createImageBitmap` decode |',
+  '|---|---|---|---|---|---|',
 );
 for (const r of results.dimensions)
-  lines.push(`| ${r.format} | ${(r.bytes / 1e6).toFixed(1)} MB | ${ms(r.poolMs)} (${r.method}) | ${ms(r.probeMs)} | ${ms(r.nativeMs)} |`);
+  lines.push(
+    `| ${r.format} | ${(r.bytes / 1e6).toFixed(1)} MB | ${ms(r.poolMs)} (${r.method}, ${r.width}×${r.height}) | ${ms(r.probeMs)} | ${ms(r.imageSizeMs)}${r.imageSizeResult ? ` (${r.imageSizeResult}, ${r.imageSizeInput})` : ''} | ${ms(r.nativeMs)} |`,
+  );
 lines.push(
   '',
   `### thumbnail() — ${results.thumbnails.files} × 4000×3000 JPEG (${(results.thumbnails.totalBytes / 1e6).toFixed(0)} MB) → ${results.thumbnails.width} px\n`,
 );
-lines.push('| approach | total wall | per-file median | longest frame gap | frames > 50 ms | long tasks |', '|---|---|---|---|---|---|');
+lines.push('| approach | output | total wall | per-file median | longest frame gap | frames > 50 ms | long tasks |', '|---|---|---|---|---|---|---|');
 for (const [k, v] of Object.entries(results.thumbnails.results))
   lines.push(
-    `| ${k}${v.workers ? ` (${v.workers} workers)` : ''} | ${ms(v.ms)} | ${ms(v.perFileMedian)} | ${ms(v.maxGap)} | ${v.longFrames} | ${ms(v.longTaskMs)} |`,
+    `| ${k}${v.workers ? ` (${v.workers} workers)` : ''} | ${v.output} | ${ms(v.ms)} | ${ms(v.perFileMedian)} | ${ms(v.maxGap)} | ${v.longFrames} | ${ms(v.longTaskMs)} |`,
   );
 lines.push(
   '',

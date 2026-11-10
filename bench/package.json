@@ -7,7 +7,11 @@
     "bench": "node run.mjs"
   },
   "devDependencies": {
+    "blueimp-load-image": "^5.16.0",
     "browser-image-compression": "^2.0.2",
-    "playwright": "1.60.0"
+    "compressorjs": "^1.4.0",
+    "image-size": "^2.1.0",
+    "pica": "^10.0.3",
+    "playwright": "1.64.1"
   }
 }
