@@ -81,7 +81,7 @@
     "test:browser": "vitest run --project browser",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "site:build": "vite build --config site/vite.config.ts && cp README.md site-dist/llms-full.txt",
+    "site:build": "vite build --config site/vite.config.ts && cp README.md site-dist/llms-full.txt && cat THIRD_PARTY_NOTICES.md wasm/libraw/LICENSE.txt node_modules/libheif-js/libheif-wasm/LICENSE node_modules/utif/LICENSE node_modules/pako/LICENSE node_modules/@fontsource-variable/schibsted-grotesk/LICENSE node_modules/@fontsource-variable/jetbrains-mono/LICENSE > site-dist/third-party-licenses.txt",
     "site:preview": "vite preview --config site/vite.config.ts --port 4341"
   },
   "devDependencies": {
