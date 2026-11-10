@@ -38,6 +38,17 @@ RAW and HEIC decoding need real camera files, which are not in the repo; `bench/
 - Third-party code that ends up in `dist/` must be listed in `THIRD_PARTY_NOTICES.md` with its licence.
 - Run `npm run type-check && npm run format:check && npm test && npm run build` before pushing; CI runs the same.
 
+## Releasing
+
+For maintainers. Pushing a version tag publishes to npm:
+
+1. In one commit, set `version` in `package.json` and put the date on that version's section in `CHANGELOG.md`.
+2. Tag that commit and push both: `git tag v0.2.0 && git push origin main v0.2.0`.
+
+`.github/workflows/release.yml` then checks that the tag, `package.json` and the changelog agree, runs the tests,
+publishes with provenance and creates the GitHub release from the changelog section. npm trusts that workflow directly
+(trusted publishing), so no token is stored anywhere.
+
 ## Reporting bugs
 
 Attach (or link) the file that fails, the browser and version, and whether the failure is in
