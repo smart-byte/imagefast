@@ -1,0 +1,34 @@
+# imagefast
+
+> Image dimensions, thumbnails and RAW previews in the browser, on a worker pool. Zero dependencies, 11 KB gzipped, with opt-in decoders for camera RAW, HEIC, TIFF and PSD. ESM only; runs in browsers (Chrome and Edge 94+, Firefox 114+, Safari 17+), not in Node.
+
+Install with `npm install imagefast`.
+
+```ts
+import { createImageFast } from 'imagefast';
+import { raw } from 'imagefast/raw'; // optional decoders: also 'imagefast/heic', 'imagefast/tiff', 'imagefast/psd'
+
+const fast = createImageFast({ plugins: [raw] }); // one instance per app, created in browser-only code
+
+const { width, height, format } = await fast.dimensions(file); // header only, no decode
+const { blob } = await fast.thumbnail(file, { width: 1024, type: 'image/webp' }); // done in a worker
+const { bitmap } = await fast.bitmap(file, { width: 800, height: 600, fit: 'cover' }); // close() it after drawing
+```
+
+- Create one instance and reuse it. With server rendering, create it after mount: it throws `ImageFastError('unsupported')` without `OffscreenCanvas`, `createImageBitmap` or `Worker`.
+- Use `dimensions()` to measure an image; do not decode one just to read its size.
+- RAW, HEIC, TIFF and PSD need their plugin in `plugins`. Without it the call rejects with code `no-decoder`.
+- Calls reject with an `ImageFastError`: branch on `error.code` (`no-decoder`, `decode-failed`, `aborted`, `terminated`, `worker-crashed`).
+- Every call takes `{ signal }`; `AbortSignal.timeout(ms)` makes a timeout.
+- Thumbnails are oriented, never upscaled and carry no EXIF.
+
+## Docs
+
+- [Full documentation](https://imagefast.dev/llms-full.txt): every option with its default, result fields, error codes, formats, the plugin interface and browser requirements
+- [Benchmarks](https://github.com/smart-byte/imagefast/blob/main/BENCHMARKS.md): method and results
+- [Changelog](https://github.com/smart-byte/imagefast/blob/main/CHANGELOG.md)
+
+## Optional
+
+- [Source on GitHub](https://github.com/smart-byte/imagefast)
+- [Package on npm](https://www.npmjs.com/package/imagefast)

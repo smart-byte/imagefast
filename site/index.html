@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>imagefast — browser image processing on a worker pool</title>
+    <meta
+      name="description"
+      content="Dimensions, thumbnails and RAW previews in the browser, on a worker pool. Zero dependencies, 11 kB gzipped, opt-in decoders for RAW, HEIC, TIFF and PSD."
+    />
+    <meta name="theme-color" content="#f8f9f5" />
+    <link rel="canonical" href="https://imagefast.dev/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://imagefast.dev/" />
+    <meta property="og:title" content="imagefast — Big images. Light work." />
+    <meta
+      property="og:description"
+      content="Dimensions, thumbnails and RAW previews in the browser, on a worker pool. Zero dependencies, opt-in decoders for RAW, HEIC, TIFF and PSD."
+    />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="text/markdown" href="/llms.txt" title="imagefast for AI agents" />
+    <script>
+      // Before first paint: the saved choice, else the system setting.
+      (() => {
+        let saved;
+        try {
+          saved = localStorage.getItem('theme');
+        } catch {}
+        document.documentElement.dataset.theme = saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      })();
+    </script>
+    <link rel="stylesheet" href="./imagefast.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <symbol id="icon-arrow" viewBox="0 0 24 24">
+          <path d="M5 12h14m-5-5 5 5-5 5" />
+        </symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24">
+          <path d="m5 12 4 4L19 6" />
+        </symbol>
+        <symbol id="icon-image" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="18" height="18" rx="3" />
+          <circle cx="8" cy="8" r="1.5" />
+          <path d="m3 17 5-5 4 4 4-6 5 7" />
+        </symbol>
+        <symbol id="icon-copy" viewBox="0 0 24 24">
+          <rect x="8" y="8" width="12" height="12" rx="2" />
+          <path d="M15 8V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4" />
+        </symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24">
+          <path d="M12 3v13m-5-5 5 5 5-5M4 16v4h16v-4" />
+        </symbol>
+        <symbol id="icon-upload" viewBox="0 0 24 24">
+          <path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5" />
+        </symbol>
+        <symbol id="icon-bolt" viewBox="0 0 24 24">
+          <path d="m13 2-9 12h7l-1 8 10-13h-7z" />
+        </symbol>
+        <symbol id="icon-cpu" viewBox="0 0 24 24">
+          <rect x="6" y="6" width="12" height="12" rx="2" />
+          <rect x="9" y="9" width="6" height="6" rx="1" />
+          <path d="M9 2v4m6-4v4m-6 12v4m6-4v4M2 9h4m-4 6h4m12-6h4m-4 6h4" />
+        </symbol>
+        <symbol id="icon-sun" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4" />
+        </symbol>
+        <symbol id="icon-moon" viewBox="0 0 24 24">
+          <path d="M20.5 13.5A8.5 8.5 0 1 1 10.5 3.5a7.5 7.5 0 0 0 10 10z" />
+        </symbol>
+        <symbol id="icon-github" viewBox="0 0 24 24">
+          <path
+            d="M9 19c-4.3 1.3-4.3-2.2-6-2.7m12 5v-3.3a2.9 2.9 0 0 0-.8-2.2c2.7-.3 5.6-1.3 5.6-6A4.7 4.7 0 0 0 18.5 6a4.3 4.3 0 0 0-.1-3.2S17.4 2.5 15 4a12 12 0 0 0-6 0C6.6 2.5 5.6 2.8 5.6 2.8A4.3 4.3 0 0 0 5.5 6a4.7 4.7 0 0 0-1.3 3.8c0 4.7 2.9 5.7 5.6 6a2.9 2.9 0 0 0-.8 2.2v3.3"
+          />
+        </symbol>
+      </defs>
+    </svg>
+    <header class="nav">
+      <div class="wrap nav-inner">
+        <a href="#top" class="brand" aria-label="imagefast home"
+          ><span class="brand-mark" aria-hidden="true"
+            ><svg viewBox="0 0 28 28">
+              <rect x="4" y="4" width="20" height="20" rx="3.5" />
+              <path d="m4 19 6-7 4 4 4-6 6 9" />
+              <circle cx="9" cy="9" r="1.4" fill="currentColor" stroke="none" /></svg></span
+          >imagefast<span class="brand-dot">.</span></a
+        >
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="#demo">Demo</a><a href="#quick-start">Quick start</a><a href="#formats">Formats</a><a href="#benchmark">Benchmark</a><a href="#api">API</a>
+        </nav>
+        <div class="nav-actions">
+          <button type="button" class="button secondary small icon-button" id="theme-toggle" aria-label="Dark theme" aria-pressed="false" title="Switch theme">
+            <svg class="icon icon-moon" aria-hidden="true"><use href="#icon-moon" /></svg
+            ><svg class="icon icon-sun" aria-hidden="true"><use href="#icon-sun" /></svg>
+          </button>
+          <a href="https://github.com/smart-byte/imagefast" class="button secondary small" aria-label="imagefast on GitHub"
+            ><svg class="icon" aria-hidden="true"><use href="#icon-github" /></svg><span>GitHub</span></a
+          >
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <section class="hero wrap" id="top" aria-labelledby="hero-title">
+        <h1 id="hero-title">
+          Big images.
+          <span
+            >Light work<svg viewBox="0 0 400 16" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M3 12C95 1 263 1 396 9" /></svg
+            >.</span
+          >
+        </h1>
+        <p class="hero-lead">
+          <span>Dimensions, thumbnails and RAW previews, right in the browser.</span>
+          <span>A worker pool does the decoding, so your page keeps scrolling.</span>
+        </p>
+        <div class="actions">
+          <a href="#quick-start" class="button primary"
+            >Get started<svg class="icon" aria-hidden="true">
+              <use href="#icon-arrow" /></svg></a
+          ><button type="button" class="install" data-copy="npm install imagefast" aria-label="Copy npm install imagefast">
+            <span aria-hidden="true">$</span><code>npm install imagefast</code><svg class="icon" aria-hidden="true"><use href="#icon-copy" /></svg
+            ><span class="copy-feedback" aria-hidden="true">Copied</span>
+          </button>
+        </div>
+        <ul class="facts">
+          <li>Zero dependencies</li>
+          <li>11 kB gzipped</li>
+          <li>TypeScript types</li>
+          <li>MIT license</li>
+        </ul>
+      </section>
+
+      <section class="demo wrap" id="demo" aria-labelledby="demo-title">
+        <div class="section-head">
+          <h2 id="demo-title">Try it on your own photos</h2>
+          <p><span>The demo runs in this tab.</span> <span>Nothing is uploaded.</span></p>
+        </div>
+        <div class="workbench" id="workbench" data-mode="single" data-state="loading">
+          <div class="lab-bar">
+            <div class="segmented mode-switch" role="group" aria-label="Processing mode">
+              <button type="button" data-mode="single" aria-pressed="true" class="active">One photo</button
+              ><button type="button" data-mode="batch" aria-pressed="false">Batch of 12</button>
+            </div>
+            <div class="source-actions">
+              <button type="button" class="text-button" id="use-sample">Use sample</button
+              ><button type="button" class="button secondary small" id="choose-files">
+                <svg class="icon" aria-hidden="true"><use href="#icon-upload" /></svg>Choose photos</button
+              ><input
+                class="sr-only"
+                type="file"
+                id="file-input"
+                multiple
+                accept="image/*,.cr2,.cr3,.nef,.arw,.dng,.raf,.rw2,.orf,.pef,.srw,.psd,.tif,.tiff,.heic,.heif"
+                aria-label="Choose images to process"
+                tabindex="-1"
+              />
+            </div>
+          </div>
+          <div class="lab-canvas" id="drop-zone">
+            <div class="image-workflow">
+              <article class="image-card source-card">
+                <div class="card-heading"><span>Original</span><span class="format-tag" id="source-format">JPEG</span></div>
+                <div class="image-frame source-frame">
+                  <img
+                    id="source-image"
+                    src="./assets/alpine-lake.jpg"
+                    width="1536"
+                    height="1024"
+                    decoding="async"
+                    alt="Sample alpine lake photograph, before processing"
+                  />
+                  <div class="source-placeholder" id="source-placeholder" hidden>
+                    <svg class="icon" aria-hidden="true">
+                      <use href="#icon-image" /></svg
+                    ><span id="source-placeholder-label">Preparing preview</span>
+                  </div>
+                  <span class="image-label" id="source-name">alpine-lake.jpg</span><span class="batch-count" id="batch-count" hidden>12 photos</span>
+                </div>
+                <div class="image-info"><span id="source-dimensions">1,536 × 1,024</span><strong id="source-bytes">—</strong></div>
+              </article>
+              <div class="engine" id="engine">
+                <div class="engine-core">
+                  <svg class="icon" aria-hidden="true"><use href="#icon-cpu" /></svg>
+                </div>
+                <div class="worker-slots" id="worker-slots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                <span class="worker-status" id="worker-status">Workers on demand</span>
+                <dl class="processing-steps">
+                  <div>
+                    <dt>Read dimensions</dt>
+                    <dd id="probe-step">—</dd>
+                  </div>
+                  <div>
+                    <dt>Resize &amp; encode</dt>
+                    <dd id="resize-step">—</dd>
+                  </div>
+                </dl>
+                <span class="engine-note" id="engine-note"></span>
+              </div>
+              <article class="image-card result-card">
+                <div class="card-heading"><span>Thumbnail</span><span class="format-tag" id="result-format">WEBP</span></div>
+                <div class="image-frame result-frame">
+                  <div class="output-empty" id="output-empty">
+                    <svg class="icon" aria-hidden="true">
+                      <use href="#icon-image" /></svg
+                    ><span>The result appears here.</span>
+                  </div>
+                  <img id="result-image" alt="Processed preview of the selected image" hidden />
+                  <div class="batch-results" id="batch-results" hidden></div>
+                  <span class="savings-badge" id="savings-badge" hidden
+                    ><svg class="icon" aria-hidden="true">
+                      <use href="#icon-check" /></svg
+                    ><span></span
+                  ></span>
+                </div>
+                <div class="image-info"><span id="result-dimensions">640 px wide</span><strong id="result-bytes">—</strong></div>
+              </article>
+            </div>
+            <div class="lab-canvas-footer"><span id="sample-note">Sample photo, AI-generated.</span><span>Drop photos anywhere in this panel.</span></div>
+          </div>
+          <div class="lab-controls">
+            <div class="setting width-setting">
+              <label for="target-width">Width</label>
+              <select id="target-width">
+                <option value="320">320 px</option>
+                <option value="640" selected>640 px</option>
+                <option value="1024">1024 px</option>
+                <option value="1536">1536 px</option>
+              </select>
+            </div>
+            <div class="setting quality-setting">
+              <label for="quality">Quality <output id="quality-value" for="quality">80%</output></label
+              ><input type="range" id="quality" min="10" max="100" step="5" value="80" />
+            </div>
+            <fieldset class="setting format-setting">
+              <legend>Output</legend>
+              <div class="segmented format-switch" role="group" aria-label="Output format">
+                <button type="button" data-format="image/webp" aria-pressed="true" class="active">WebP</button
+                ><button type="button" data-format="image/jpeg" aria-pressed="false">JPEG</button
+                ><button type="button" data-format="image/png" aria-pressed="false">PNG</button>
+              </div>
+            </fieldset>
+            <div class="lab-actions">
+              <button class="button secondary" type="button" id="download" disabled>
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-download" /></svg
+                ><span>Download</span></button
+              ><button class="button primary" type="button" id="process" disabled>
+                <svg class="icon" aria-hidden="true"><use href="#icon-bolt" /></svg><span>Run</span>
+              </button>
+            </div>
+          </div>
+          <div class="lab-console">
+            <span aria-hidden="true">›</span><code id="lab-log">fast.thumbnail(photo, { width: 640, type: 'image/webp' })</code
+            ><span id="lab-timing">Ready</span>
+          </div>
+          <div class="lab-message" id="lab-message" role="status" hidden></div>
+          <noscript><p class="lab-message">The demo needs JavaScript. imagefast runs locally in your browser.</p></noscript>
+        </div>
+      </section>
+
+      <section class="section wrap" id="quick-start" aria-labelledby="quick-start-title">
+        <div class="section-head">
+          <h2 id="quick-start-title">Quick start</h2>
+          <p><span>Create a pool once.</span> <span>Every call returns a promise and does its work in a worker.</span></p>
+        </div>
+        <div class="split">
+          <div class="code-window">
+            <div class="code-toolbar">
+              <span>thumbnails.ts</span
+              ><button id="copy-code" type="button" aria-label="Copy the example">
+                <svg class="icon" aria-hidden="true"><use href="#icon-copy" /></svg><span>Copy</span>
+              </button>
+            </div>
+            <pre
+              tabindex="0"
+              class="code"
+              aria-label="TypeScript example"
+            ><code id="code-example"><span class="k">import</span> { createImageFast } <span class="k">from</span> <span class="s">'imagefast'</span>;
+
+<span class="k">const</span> fast = <span class="fn">createImageFast</span>();
+
+<span class="c">// Header only. No pixels are decoded.</span>
+<span class="k">const</span> { width, height } = <span class="k">await</span> fast.<span class="fn">dimensions</span>(file);
+
+<span class="c">// Decoded, resized and encoded in a worker.</span>
+<span class="k">const</span> { blob } = <span class="k">await</span> fast.<span class="fn">thumbnail</span>(file, {
+  width: <span class="n">640</span>,
+  type: <span class="s">'image/webp'</span>,
+});
+
+<span class="c">// Or the same pixels for a canvas, without encoding.</span>
+<span class="k">const</span> { bitmap } = <span class="k">await</span> fast.<span class="fn">bitmap</span>(file, { width: <span class="n">640</span> });</code></pre>
+          </div>
+          <ol class="principles">
+            <li>
+              <h3>Dimensions without decoding</h3>
+              <p>
+                <code>dimensions()</code> reads the first 64 KB and parses the header, EXIF orientation included. A 50 MB photo takes well under a millisecond.
+              </p>
+            </li>
+            <li>
+              <h3>Pixels off the main thread</h3>
+              <p>Decoding, orientation, resizing and encoding run in workers that start on demand and exit when idle.</p>
+            </li>
+            <li>
+              <h3>No wasted work</h3>
+              <p>
+                Thumbnails never upscale. Small files that already fit pass through untouched. RAW files use the camera’s embedded preview before a full decode.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section wrap" id="formats" aria-labelledby="formats-title">
+        <div class="section-head">
+          <h2 id="formats-title">Formats</h2>
+          <p><span>JPEG, PNG, WebP, GIF and AVIF work out of the box.</span> <span>Other formats are opt-in plugins, downloaded on first use.</span></p>
+        </div>
+        <div class="format-table">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Format</th>
+                <th scope="col">Reads</th>
+                <th scope="col">Decoder</th>
+                <th scope="col" class="size">Download, gzipped</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><b>Native</b><span>no import</span></th>
+                <td><b>JPEG, PNG, WebP, GIF, AVIF</b><span>Whatever the browser decodes.</span></td>
+                <td>The browser</td>
+                <td class="size">None</td>
+              </tr>
+              <tr>
+                <th scope="row"><b>RAW</b><code>imagefast/raw</code></th>
+                <td><b>CR2, CR3, NEF, ARW, DNG, RAF and more</b><span>1,200+ cameras. Embedded preview first, demosaic as the fallback.</span></td>
+                <td>LibRaw 0.22</td>
+                <td class="size">410 kB</td>
+              </tr>
+              <tr>
+                <th scope="row"><b>HEIC</b><code>imagefast/heic</code></th>
+                <td><b>HEIC and HEIF</b><span>Rotation and mirroring applied. Not fetched where the browser decodes HEIC itself.</span></td>
+                <td>libheif</td>
+                <td class="size">715 kB</td>
+              </tr>
+              <tr>
+                <th scope="row"><b>TIFF</b><code>imagefast/tiff</code></th>
+                <td><b>LZW, PackBits, Deflate and JPEG compression</b><span>16-bit and CMYK images, orientation applied.</span></td>
+                <td>UTIF</td>
+                <td class="size">30 kB</td>
+              </tr>
+              <tr>
+                <th scope="row"><b>PSD</b><code>imagefast/psd</code></th>
+                <td><b>Photoshop’s flattened composite</b><span>RGB, grayscale or CMYK, with transparency.</span></td>
+                <td>Built in</td>
+                <td class="size">1.5 kB</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <pre
+          class="code inline-code"
+          tabindex="0"
+          aria-label="Plugin example"
+        ><code><span class="k">import</span> { raw } <span class="k">from</span> <span class="s">'imagefast/raw'</span>;
+<span class="k">import</span> { heic } <span class="k">from</span> <span class="s">'imagefast/heic'</span>;
+
+<span class="k">const</span> fast = <span class="fn">createImageFast</span>({ plugins: [raw, heic] });</code></pre>
+        <p class="footnote">
+          DNG 1.7 with JPEG XL and Nikon HE/HE* NEF cannot be demosaiced; their embedded previews still work.
+          <a href="https://github.com/smart-byte/imagefast#plugins-opt-in">Plugin details</a>
+        </p>
+      </section>
+
+      <section class="section wrap" id="benchmark" aria-labelledby="benchmark-title">
+        <div class="split benchmark">
+          <div class="section-head">
+            <h2 id="benchmark-title">40 photos in 262 ms</h2>
+            <p><span>40 twelve-megapixel JPEGs, resized to 1024 px.</span> <span>The page never paused longer than 9.6 ms.</span></p>
+            <a href="https://github.com/smart-byte/imagefast/blob/main/BENCHMARKS.md" class="text-link"
+              >Method and full results<svg class="icon" aria-hidden="true"><use href="#icon-arrow" /></svg
+            ></a>
+          </div>
+          <figure class="chart">
+            <figcaption>Total time for 40 thumbnails, with the longest gap between frames</figcaption>
+            <div class="chart-row ours">
+              <span>imagefast, worker pool</span><b>262 ms</b>
+              <span class="track"><i style="--value: 10.2%"></i></span>
+              <small>9.6 ms longest frame gap</small>
+            </div>
+            <div class="chart-row">
+              <span>imagefast on the main thread</span><b>699 ms</b>
+              <span class="track"><i style="--value: 27.3%"></i></span>
+              <small>109 ms longest frame gap</small>
+            </div>
+            <div class="chart-row">
+              <span><code>&lt;img&gt;</code> and canvas</span><b>2,560 ms</b>
+              <span class="track"><i style="--value: 100%"></i></span>
+              <small>123 ms longest frame gap</small>
+            </div>
+            <p class="footnote">Apple M3 Max, Chromium 148, 15 workers, September 2026. Recorded results, not measured live.</p>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section wrap" id="api" aria-labelledby="api-title">
+        <div class="section-head">
+          <h2 id="api-title">API</h2>
+          <p>
+            <span>Six methods on one object.</span> <span>Every call takes an <code>AbortSignal</code>.</span>
+          </p>
+        </div>
+        <dl class="api-list">
+          <div>
+            <dt><code>dimensions(file)</code></dt>
+            <dd>Oriented width and height, the format, and how they were read.</dd>
+          </div>
+          <div>
+            <dt><code>thumbnail(file, options)</code></dt>
+            <dd>A JPEG, WebP or PNG blob that fits or fills a box. Never upscales.</dd>
+          </div>
+          <div>
+            <dt><code>bitmap(file, options)</code></dt>
+            <dd>The same pixels as an <code>ImageBitmap</code> for a canvas. No encode.</dd>
+          </div>
+          <div>
+            <dt><code>decodeRaw(file, options)</code></dt>
+            <dd>A RAW file’s JPEG preview with camera details. Needs the RAW plugin.</dd>
+          </div>
+          <div>
+            <dt><code>stats()</code></dt>
+            <dd>Pool size, live and busy workers, queued jobs.</dd>
+          </div>
+          <div>
+            <dt><code>terminate()</code></dt>
+            <dd>Stops the workers and rejects pending calls.</dd>
+          </div>
+        </dl>
+        <p class="footnote">
+          <code>workers</code> and <code>idleMs</code> size the pool. <a href="https://github.com/smart-byte/imagefast#api">Full reference</a>
+        </p>
+      </section>
+
+      <section class="section wrap" id="faq" aria-labelledby="faq-title">
+        <div class="section-head">
+          <h2 id="faq-title">Questions</h2>
+        </div>
+        <div class="faq">
+          <div>
+            <h3>Do images leave the browser?</h3>
+            <p>No. Everything runs locally in Web Workers. There is no upload service; your app decides what happens with the result.</p>
+          </div>
+          <div>
+            <h3>Which browsers are supported?</h3>
+            <p>Chrome and Edge 94+, Firefox 114+ and Safari 17+. It needs module workers, <code>createImageBitmap</code> and <code>OffscreenCanvas</code>.</p>
+          </div>
+          <div>
+            <h3>Does it work with React, Vue or Svelte?</h3>
+            <p>Yes. It has no framework code and returns promises. Create it in browser code, after mount if you render on the server.</p>
+          </div>
+          <div>
+            <h3>Does it replace server-side processing?</h3>
+            <p>No. It prepares images before upload: previews, thumbnails, local workflows. On the server, use a library such as sharp.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="pair wrap" aria-labelledby="pair-title">
+        <span class="pipelino-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <div>
+          <h2 id="pair-title">Pairs with Pipelino</h2>
+          <p>Inspect, thumbnail, upload: run the whole flow as a staged pipeline with concurrency, batching and live progress.</p>
+        </div>
+        <a href="https://github.com/smart-byte/pipelino" class="button secondary"
+          >Meet Pipelino<svg class="icon" aria-hidden="true">
+            <use href="#icon-arrow" /></svg
+        ></a>
+      </section>
+
+      <section class="closing wrap" aria-labelledby="closing-title">
+        <h2 id="closing-title">Add it to your app</h2>
+        <div class="actions">
+          <button type="button" class="install" data-copy="npm install imagefast" aria-label="Copy npm install imagefast">
+            <span aria-hidden="true">$</span><code>npm install imagefast</code><svg class="icon" aria-hidden="true"><use href="#icon-copy" /></svg
+            ><span class="copy-feedback" aria-hidden="true">Copied</span></button
+          ><a class="button primary" href="https://github.com/smart-byte/imagefast#quick-start"
+            >Read the docs<svg class="icon" aria-hidden="true">
+              <use href="#icon-arrow" /></svg
+          ></a>
+        </div>
+      </section>
+    </main>
+    <footer class="wrap">
+      <a class="brand" href="#top">imagefast<span class="brand-dot">.</span></a>
+      <nav aria-label="Footer navigation">
+        <a href="https://github.com/smart-byte/imagefast">GitHub</a><a href="https://www.npmjs.com/package/imagefast">npm</a><a href="./llms.txt">llms.txt</a
+        ><a href="https://github.com/smart-byte/imagefast/blob/main/LICENSE">MIT license</a
+        ><a href="https://github.com/smart-byte/imagefast/blob/main/THIRD_PARTY_NOTICES.md">Third-party notices</a>
+      </nav>
+    </footer>
+    <div id="announcement" class="sr-only" role="status"></div>
+    <script type="module" src="./imagefast-demo.js"></script>
+  </body>
+</html>
