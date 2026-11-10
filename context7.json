@@ -1,0 +1,17 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "imagefast",
+  "description": "Image dimensions, thumbnails and RAW previews in the browser on a worker pool, with opt-in decoders for camera RAW, HEIC, TIFF and PSD.",
+  "excludeFolders": ["src", "bench", "site", "wasm", "dist"],
+  "excludeFiles": ["CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "THIRD_PARTY_NOTICES.md"],
+  "rules": [
+    "Create one createImageFast() instance per app and reuse it. Create it in browser-only code, after mount when rendering on the server.",
+    "Use dimensions(file) to read width and height: it parses the file header without decoding. Do not decode an image just to measure it.",
+    "RAW, HEIC, TIFF and PSD need their plugin: import { raw } from 'imagefast/raw' (or /heic, /tiff, /psd) and pass createImageFast({ plugins: [raw] }).",
+    "Calls reject with an ImageFastError. Branch on error.code ('no-decoder', 'decode-failed', 'aborted', 'terminated', 'worker-crashed'), not on the message.",
+    "Pass { signal } to cancel a call. AbortSignal.timeout(ms) makes a timeout.",
+    "Close the ImageBitmap returned by bitmap() after drawing it, and revoke object URLs created from thumbnail blobs.",
+    "RAW files are detected by file name or MIME type: pass a File, or a Blob with a type.",
+    "imagefast is ESM only and runs in browsers only (Chrome and Edge 94+, Firefox 114+, Safari 17+). On a server, use sharp."
+  ]
+}
