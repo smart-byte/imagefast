@@ -1127,6 +1127,16 @@ pre.inline-code {
   color: var(--muted);
   font-size: 0.8125rem;
 }
+.chart-more summary {
+  width: fit-content;
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.chart-more .chart-row {
+  margin-top: 22px;
+}
 .chart .footnote {
   padding-top: 18px;
   border-top: 1px solid var(--line);

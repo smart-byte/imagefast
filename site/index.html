@@ -382,8 +382,8 @@
       <section class="section wrap" id="benchmark" aria-labelledby="benchmark-title">
         <div class="split benchmark">
           <div class="section-head">
-            <h2 id="benchmark-title">40 photos in 262 ms</h2>
-            <p><span>40 twelve-megapixel JPEGs, resized to 1024 px.</span> <span>The page never paused longer than 9.6 ms.</span></p>
+            <h2 id="benchmark-title">40 photos in 303 ms</h2>
+            <p><span>40 twelve-megapixel JPEGs, resized to 1024 px.</span> <span>The page never paused longer than 17 ms.</span></p>
             <a href="https://github.com/smart-byte/imagefast/blob/main/BENCHMARKS.md" class="text-link"
               >Method and full results<svg class="icon" aria-hidden="true"><use href="#icon-arrow" /></svg
             ></a>
@@ -391,21 +391,49 @@
           <figure class="chart">
             <figcaption>Total time for 40 thumbnails, with the longest gap between frames</figcaption>
             <div class="chart-row ours">
-              <span>imagefast, worker pool</span><b>262 ms</b>
-              <span class="track"><i style="--value: 10.2%"></i></span>
-              <small>9.6 ms longest frame gap</small>
+              <span>imagefast, worker pool</span><b>303 ms</b>
+              <span class="track"><i style="--value: 10.4%"></i></span>
+              <small>17 ms longest frame gap</small>
             </div>
             <div class="chart-row">
-              <span>imagefast on the main thread</span><b>699 ms</b>
-              <span class="track"><i style="--value: 27.3%"></i></span>
-              <small>109 ms longest frame gap</small>
+              <span><code>&lt;img&gt;</code> and canvas</span><b>2,637 ms</b>
+              <span class="track"><i style="--value: 90.2%"></i></span>
+              <small>124 ms longest frame gap</small>
             </div>
             <div class="chart-row">
-              <span><code>&lt;img&gt;</code> and canvas</span><b>2,560 ms</b>
+              <span>pica</span><b>2,923 ms</b>
               <span class="track"><i style="--value: 100%"></i></span>
-              <small>123 ms longest frame gap</small>
+              <small>228 ms longest frame gap</small>
             </div>
-            <p class="footnote">Apple M3 Max, Chromium 148, 15 workers, September 2026. Recorded results, not measured live.</p>
+            <details class="chart-more">
+              <summary>Four more results</summary>
+              <div class="chart-row">
+                <span>browser-image-compression</span><b>501 ms</b>
+                <span class="track"><i style="--value: 17.1%"></i></span>
+                <small>18 ms longest frame gap</small>
+              </div>
+              <div class="chart-row">
+                <span>imagefast on the main thread</span><b>1,002 ms</b>
+                <span class="track"><i style="--value: 34.3%"></i></span>
+                <small>137 ms longest frame gap</small>
+              </div>
+              <div class="chart-row">
+                <span>blueimp-load-image</span><b>2,585 ms</b>
+                <span class="track"><i style="--value: 88.4%"></i></span>
+                <small>124 ms longest frame gap</small>
+              </div>
+              <div class="chart-row">
+                <span>compressorjs</span><b>2,763 ms</b>
+                <span class="track"><i style="--value: 94.5%"></i></span>
+                <small>119 ms longest frame gap</small>
+              </div>
+            </details>
+            <p class="footnote">
+              Apple M3 Max, Chromium 156, 15 workers, November 2026. Recorded results, not measured live. Each library ran with its defaults, and pica favors
+              resampling quality over speed: see the
+              <a href="https://github.com/smart-byte/imagefast/blob/main/BENCHMARKS.md#caveats">settings and caveats</a> or
+              <a href="https://github.com/smart-byte/imagefast/blob/main/BENCHMARKS.md#reproduce">run it yourself</a>.
+            </p>
           </figure>
         </div>
       </section>
