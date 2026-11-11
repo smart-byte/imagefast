@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- `thumbnail()` frees its canvas as soon as the thumbnail is encoded instead of leaving it to the garbage collector, so canvas memory no longer piles up across many thumbnails. RAW files without an embedded preview free their demosaic canvas the same way.
+
 ## [0.1.0] - 2026-11-10
 
 First public release.

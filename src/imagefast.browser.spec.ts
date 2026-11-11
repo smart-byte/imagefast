@@ -203,10 +203,11 @@ describe('createImageFast (workers)', () => {
 });
 
 describe('createImageFast({ workers: 0 })', () => {
-  // `psd` and `xyz` name their decoder modules as worker files, and Vitest starts every worker file with a stub of its
-  // own page state. Imported into this page, which is what `workers: 0` does, the stub replaces the real state and the
+  // `psd`, `raw` and `xyz` name their decoder modules as worker files, and Vitest starts every worker file with a stub of
+  // its own page state. Imported into this page, which is what `workers: 0` does, the stub replaces the real state and the
   // runner dies after the test. So the same modules are named as plain module URLs here.
   const psdOnPage: ImageFastPlugin = { module: new URL('./worker-psd.ts', import.meta.url).href };
+  const rawOnPage: ImageFastPlugin = { module: new URL('./worker-raw.ts', import.meta.url).href, options: raw.options };
   const xyzOnPage: ImageFastPlugin = { module: new URL('./test/xyz-module.ts', import.meta.url).href };
 
   it('runs on the calling thread with plugins loaded', async () => {
@@ -227,5 +228,24 @@ describe('createImageFast({ workers: 0 })', () => {
     fast = createImageFast({ workers: 0, plugins: [flaky] });
     await expect(fast.thumbnail(psdFile(), { width: 2 })).rejects.toThrow('flaky');
     expect(await fast.thumbnail(psdFile(), { width: 2 })).toMatchObject({ width: 2, height: 2, decodedBy: 'psd' });
+  });
+
+  it('empties each canvas once it is encoded instead of leaving its pixels to the garbage collector', async () => {
+    const png = await canvasBlob(400, 300, 'image/png');
+    const encoded: OffscreenCanvas[] = [];
+    const { convertToBlob } = OffscreenCanvas.prototype;
+    OffscreenCanvas.prototype.convertToBlob = function (options) {
+      encoded.push(this);
+      return convertToBlob.call(this, options);
+    };
+    try {
+      fast = createImageFast({ workers: 0, plugins: [rawOnPage] });
+      await fast.thumbnail(png, { width: 100 });
+      // A RAW file without a preview is encoded twice: its demosaic by the decoder, then the thumbnail.
+      await fast.thumbnail(dngFile(), { width: 14 });
+    } finally {
+      OffscreenCanvas.prototype.convertToBlob = convertToBlob;
+    }
+    expect(encoded.map((canvas) => `${canvas.width}x${canvas.height}`)).toEqual(['0x0', '0x0', '0x0']);
   });
 });

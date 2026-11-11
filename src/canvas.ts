@@ -56,5 +56,12 @@ export async function orientBitmap(bmp: ImageBitmap, orientation: number): Promi
 export async function bitmapToBlob(bmp: ImageBitmap, type: string, quality: number): Promise<Blob> {
   const canvas = new OffscreenCanvas(bmp.width, bmp.height);
   canvas.getContext('2d')!.drawImage(bmp, 0, 0);
-  return canvas.convertToBlob({ type, quality });
+  return canvasToBlob(canvas, type, quality);
+}
+
+/** Encodes, then sizes the canvas to 0 × 0: a dropped canvas keeps its pixels until garbage collection. */
+export async function canvasToBlob(canvas: OffscreenCanvas, type: string, quality: number): Promise<Blob> {
+  const blob = await canvas.convertToBlob({ type, quality });
+  canvas.width = canvas.height = 0;
+  return blob;
 }
