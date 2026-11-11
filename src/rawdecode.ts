@@ -1,5 +1,5 @@
 import createLibRaw, { type LibRawModule } from './libraw.js';
-import { bitmapToBlob, fitSize, orientBitmap, rgbToRgba } from './canvas';
+import { bitmapToBlob, canvasToBlob, fitSize, orientBitmap, rgbToRgba } from './canvas';
 import { jpegOrientation, orientJpeg, probeDimensions } from './probe';
 import { ImageFastError } from './errors';
 import { lazy } from './lazy';
@@ -208,7 +208,7 @@ async function imageToJpeg(m: LibRawModule, img: number, flip: number, quality: 
   if (m._lr_img_colors(img) !== 3 || m._lr_img_bits(img) !== 8) throw new ImageFastError('decode-failed', 'unexpected libraw bitmap layout');
   const canvas = new OffscreenCanvas(width, height);
   canvas.getContext('2d')!.putImageData(new ImageData(rgbToRgba(data, width, height), width, height), 0, 0);
-  if (!flip) return { blob: await canvas.convertToBlob({ type: 'image/jpeg', quality }), width, height };
+  if (!flip) return { blob: await canvasToBlob(canvas, 'image/jpeg', quality), width, height };
   return rotate(canvas.transferToImageBitmap(), flip, quality);
 }
 

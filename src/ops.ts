@@ -1,5 +1,5 @@
 import { isRawFile } from './raw';
-import { fitSize } from './canvas';
+import { canvasToBlob, fitSize } from './canvas';
 import { hasMetadata, isHeic, isPsd, parseTiffIfd, probeDimensions, tiffHeader, type ProbedFormat } from './probe';
 import { ImageFastError } from './errors';
 import type { Container, DecodeOptions, Decoder, Fit, ImageFastPlugin, Matcher, PluginModule, Size } from './plugin';
@@ -212,7 +212,7 @@ export async function thumbnail(file: Blob, opts: ThumbnailOptions = {}): Promis
     if (asIs && source?.type === type && source.size <= reuseSourceBelowBytes && !hasMetadata(new Uint8Array(await source.arrayBuffer()))) {
       return { ...base, blob: source, reusedSource: true, ms: performance.now() - t0 };
     }
-    const blob = await draw().convertToBlob({ type, quality });
+    const blob = await canvasToBlob(draw(), type, quality);
     return { ...base, blob, reusedSource: false, ms: performance.now() - t0 };
   } finally {
     src.bitmap.close();
